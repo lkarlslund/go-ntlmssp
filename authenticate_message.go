@@ -82,7 +82,7 @@ func (m authenicateMessage) MarshalBinary() ([]byte, error) {
 
 //ProcessChallenge crafts an AUTHENTICATE message in response to the CHALLENGE message
 //that was received from the server
-func ProcessChallenge(challengeMessageData []byte, user, password string) ([]byte, error) {
+func ProcessChallenge(challengeMessageData []byte, user, password string, bindings *ChannelBindings) ([]byte, error) {
 	if user == "" && password == "" {
 		return nil, errors.New("Anonymous authentication not supported")
 	}
@@ -91,6 +91,11 @@ func ProcessChallenge(challengeMessageData []byte, user, password string) ([]byt
 	if err := cm.UnmarshalBinary(challengeMessageData); err != nil {
 		return nil, err
 	}
+
+	b, _ := bindings.marshal()
+	cm.TargetInfo[avIDMsvChannelBindings] = hashMD5(b)
+	byteCheck, _ := GetTargetInfoBytes(cm.TargetInfo)
+	cm.TargetInfoRaw = byteCheck
 
 	if cm.NegotiateFlags.Has(negotiateFlagNTLMSSPNEGOTIATELMKEY) {
 		return nil, errors.New("Only NTLM v2 is supported, but server requested v1 (NTLMSSP_NEGOTIATE_LM_KEY)")

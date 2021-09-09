@@ -125,7 +125,10 @@ func (l Negotiator) RoundTrip(req *http.Request) (res *http.Response, err error)
 		res.Body.Close()
 
 		// send authenticate
-		authenticateMessage, err := ProcessChallenge(challengeMessage, u, p)
+
+		var cbt *ChannelBindings
+		cbt = generateChannelBindings(res.TLS.PeerCertificates[0]) // Presume it's the first one?
+		authenticateMessage, err := ProcessChallenge(challengeMessage, u, p, cbt)
 		if err != nil {
 			return nil, err
 		}

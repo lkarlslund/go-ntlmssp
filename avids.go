@@ -15,3 +15,8 @@ const (
 	avIDMsvAvTargetName
 	avIDMsvChannelBindings
 )
+
+type avPair struct {
+	ID     avID
+	Length uint16
+}

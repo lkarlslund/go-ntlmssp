@@ -26,6 +26,28 @@ type challengeMessage struct {
 	TargetInfoRaw []byte
 }
 
+func GetTargetInfoBytes(TargetInfo map[avID][]byte) ([]byte, error) {
+
+	b := bytes.Buffer{}
+
+	for ID, v := range TargetInfo {
+		if ID == avIDMsvAvEOL {
+			continue
+		}
+		if err := binary.Write(&b, binary.LittleEndian, &avPair{ID, uint16(len(v))}); err != nil {
+			return nil, err
+		}
+		b.Write(v)
+	}
+
+	// Append required MsvAvEOL pair
+	if err := binary.Write(&b, binary.LittleEndian, &avPair{avIDMsvAvEOL, 0}); err != nil {
+		return nil, err
+	}
+
+	return b.Bytes(), nil
+}
+
 func (m *challengeMessage) UnmarshalBinary(data []byte) error {
 	r := bytes.NewReader(data)
 	err := binary.Read(r, binary.LittleEndian, &m.challengeMessageFields)
